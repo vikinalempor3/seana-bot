@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0a0305">
+<title>Game Hub</title>
+<style>
+:root{--bg:#0a0305;--card:#1a0b10;--bd:#3a1a24;--tx:#f4e9ec;--mut:#a98a8e;--b:#ff4d79;--b2:#ff8a5c;--ok:#4ade80;--er:#fda4af}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.w{max-width:480px;margin:0 auto;padding:20px 16px 40px}
+.hero{text-align:center;margin:8px 0 18px}.logo{font-size:44px}
+h1{margin:4px 0 2px;font-size:24px}.s{margin:0;color:var(--mut);font-size:13px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:16px;margin-bottom:12px}
+.grid{display:grid;gap:10px}
+a.g{display:flex;gap:14px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:14px;color:var(--tx);text-decoration:none}
+a.g:active{transform:scale(.98)}a.g .i{font-size:32px}a.g b{display:block;font-size:16px}a.g span{color:var(--mut);font-size:12px}
+.back{display:inline-block;color:var(--b);text-decoration:none;font-size:14px;margin-bottom:6px}
+textarea,input[type=text]{width:100%;background:#12070b;color:var(--tx);border:1px solid var(--bd);border-radius:14px;padding:12px;font:inherit;font-size:15px}
+textarea{min-height:130px;resize:vertical}
+.r{display:flex;justify-content:space-between;color:var(--mut);font-size:12px;margin:6px 2px 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{background:#12070b;border:1px solid var(--bd);color:var(--tx);border-radius:999px;padding:8px 13px;font-size:13px}
+.chip.on{background:linear-gradient(135deg,var(--b),var(--b2));border-color:transparent;color:#1a0309;font-weight:700}
+button.go{width:100%;border:0;border-radius:14px;padding:14px;font-size:16px;font-weight:800;color:#1a0309;background:linear-gradient(135deg,var(--b),var(--b2))}
+button.go:disabled{opacity:.5}
+button.alt{width:100%;border:1px solid var(--bd);background:#12070b;color:var(--tx);border-radius:14px;padding:13px;font-size:15px;font-weight:700}
+.st{min-height:20px;text-align:center;margin-top:12px;font-size:14px;color:var(--mut)}.st.ok{color:var(--ok)}.st.er{color:var(--er)}
+.hide{display:none!important}
+.drop{display:grid;place-items:center;gap:6px;text-align:center;border:2px dashed var(--bd);border-radius:18px;padding:34px 12px;color:var(--mut);cursor:pointer;margin-bottom:12px}
+.drop b{color:var(--tx);font-size:16px}.drop span{font-size:40px}
+#pv{width:100%;max-height:360px;object-fit:cover;border-radius:16px;margin-bottom:10px;display:block}
+.lnk{background:none;border:0;color:var(--b);font-size:14px;padding:4px 0 10px}
+.chk{display:flex;gap:10px;margin-top:12px;color:var(--mut);font-size:13px;line-height:1.4}.chk input{width:20px;height:20px;flex:none;accent-color:var(--b)}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.duo div{text-align:center;padding:11px;border-radius:12px;font-weight:800;font-size:14px}
+.sm{background:rgba(74,222,128,.18);color:var(--ok)}.ps{background:rgba(253,164,175,.18);color:var(--er)}
+.big{font-size:21px;line-height:1.35;text-align:center;font-weight:700;min-height:130px;display:grid;place-items:center;padding:6px}
+.tag{display:inline-block;font-size:12px;font-weight:800;letter-spacing:1px;padding:4px 10px;border-radius:999px;background:#12070b;border:1px solid var(--bd);color:var(--b);margin-bottom:8px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.opt{border:1px solid var(--bd);background:#12070b;color:var(--tx);border-radius:16px;padding:18px 12px;font-size:16px;font-weight:700;line-height:1.3}
+.opt.pick{background:linear-gradient(135deg,var(--b),var(--b2));color:#1a0309;border-color:transparent}
+.or{text-align:center;color:var(--mut);font-weight:800;margin:6px 0}
+small.f{display:block;text-align:center;color:var(--mut);margin-top:16px;line-height:1.5;font-size:12px}
+</style></head><body><div class="w" id="app"></div>
+<script>
+var $=function(i){return document.getElementById(i)};
+var qs=new URLSearchParams(location.search),tok=qs.get('t')||'';
+var slug=(location.pathname.split('/')[2]||'').toLowerCase();
+var tq=tok?('?t='+encodeURIComponent(tok)):'';
+var app=$('app');
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function say(id,cls,m){var e=$(id);e.className='st '+cls;e.textContent=m}
+var fromHub=qs.get('from')==='hub';
+function gl(g){return '/games/'+g+(tok?('?t='+encodeURIComponent(tok)+'&from=hub'):'?from=hub')}
+function head(icon,title,sub){return (fromHub?'<a class="back" href="/games'+tq+'">‹ All games</a>':'')+'<div class="hero"><div class="logo">'+icon+'</div><h1>'+title+'</h1><p class="s">'+sub+'</p></div>'}
+function needLink(){return '<div class="card" style="text-align:center"><div style="font-size:34px">🔗</div><p><b>This game needs your group\'s link.</b></p><p class="s">Ask a group admin to send <b>.games</b> in the group and open the link from there.</p></div>'}
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function deck(a){var q=[];return function(){if(!q.length){q=a.slice();for(var i=q.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=q[i];q[i]=q[j];q[j]=t}}return q.pop()}}
+function deviceId(){try{var d=localStorage.getItem('sdev');if(!d){d=Math.random().toString(36).slice(2,8)+Date.now().toString(36)+Math.random().toString(36).slice(2,6);localStorage.setItem('sdev',d)}return d}catch(e){return Math.random().toString(36).slice(2,14)}}
+
+/* ───────── HUB ───────── */
+function hub(){
+ app.innerHTML='<div class="hero"><div class="logo">🎮</div><h1>Game Hub</h1><p class="s">pick a game and play</p></div><div class="grid">'
+ +'<a class="g" href="'+gl('smash')+'"><div class="i">🔥</div><div><b>Smash or Pass</b><span>send a picture, the group votes</span></div></a>'
+ +'<a class="g" href="'+gl('anon')+'"><div class="i">🎭</div><div><b>Anonymous</b><span>send the group a message, no name shown</span></div></a>'
+ +'<a class="g" href="'+gl('truthdare')+'"><div class="i">😈</div><div><b>Truth or Dare</b><span>get a random truth or dare</span></div></a>'
+ +'<a class="g" href="'+gl('wyr')+'"><div class="i">🥂</div><div><b>Would You Rather</b><span>pick a side, no fence-sitting</span></div></a>'
+ +'</div><small class="f">Group games (Smash or Pass, Anonymous) need the link an admin gets with <b>.games</b>.</small>';
+}
+
+/* ───────── ANONYMOUS ───────── */
+function anon(){
+ if(!tok){app.innerHTML=head('🎭','Anonymous','your name is never shown')+needLink();return}
+ var kinds=[['confession','🤫 Confession'],['question','❓ Question'],['compliment','💌 Compliment'],['roast','🔥 Roast'],['gist','👀 Gist']],k='confession',MAX=500;
+ app.innerHTML=head('🎭','Anonymous','your name is never shown')
+ +'<div class="card"><div class="chips" id="chips">'+kinds.map(function(x,i){return'<button class="chip'+(i?'':' on')+'" data-k="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'
+ +'<textarea id="t" maxlength="'+MAX+'" placeholder="say what you want to say…"></textarea>'
+ +'<div class="r"><span id="c">0/'+MAX+'</span><span>be kind, don\'t be a menace</span></div>'
+ +'<button class="go" id="b">Send anonymously</button><div class="st" id="st"></div></div>'
+ +'<small class="f">Messages go straight to the group. Admins can close this link at any time.</small>';
+ $('chips').addEventListener('click',function(e){var x=e.target.closest('.chip');if(!x)return;[].forEach.call(document.querySelectorAll('.chip'),function(c){c.classList.remove('on')});x.classList.add('on');k=x.dataset.k});
+ $('t').addEventListener('input',function(){$('c').textContent=$('t').value.length+'/'+MAX});
+ $('b').onclick=function(){var v=$('t').value.trim();if(!v){say('st','er','write something first');return}
+  var b=$('b');b.disabled=true;say('st','','sending…');
+  fetch('/anon/'+encodeURIComponent(tok)+'/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:v,kind:k})})
+  .then(function(r){return r.json().then(function(j){return{ok:r.ok,j:j}})})
+  .then(function(o){if(o.ok){say('st','ok','✅ sent to the group');$('t').value='';$('c').textContent='0/'+MAX}else say('st','er',o.j.error||'could not send');b.disabled=false})
+  .catch(function(){say('st','er','network error, try again');b.disabled=false})};
+}
+
+/* ───────── SMASH OR PASS ───────── */
+function smash(){
+ if(!tok){app.innerHTML=head('🔥','Smash or Pass','send a picture, the group votes')+needLink();return}
+ var img='',dev=deviceId();
+ app.innerHTML=head('🔥','Smash or Pass','send a picture, the group votes')
+ +'<div class="card"><label class="drop" id="drop"><span>📸</span><b>Choose or take a picture</b><div>it goes to the group with a Smash / Pass poll</div><input id="f" type="file" accept="image/*" hidden></label>'
+ +'<img id="pv" class="hide" alt=""><button class="lnk hide" id="rm" type="button">✖ remove picture</button>'
+ +'<input type="text" id="cap" maxlength="60" placeholder="name or caption (optional)">'
+ +'<label class="chk"><input type="checkbox" id="ok"><span>I confirm this is a fictional character, a public figure, or someone who agreed, and everyone shown is 18+.</span></label>'
+ +'<div class="duo"><div class="sm">🔥 Smash</div><div class="ps">🚫 Pass</div></div>'
+ +'<button class="go" id="sb">Send to group</button><div class="st" id="sst"></div></div>'
+ +'<small class="f">One picture per person. An admin posts the entries in the group one by one.</small>';
+ function clr(){img='';$('pv').classList.add('hide');$('rm').classList.add('hide');$('drop').classList.remove('hide');$('f').value=''}
+ $('rm').onclick=clr;
+ $('f').onchange=function(){var f=this.files[0];if(!f||f.type.indexOf('image')!==0)return;var r=new FileReader();
+  r.onload=function(){var im=new Image();im.onload=function(){var s=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');
+   c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+   img=c.toDataURL('image/jpeg',0.82);$('pv').src=img;$('pv').classList.remove('hide');$('rm').classList.remove('hide');$('drop').classList.add('hide');say('sst','','')};im.src=r.result};r.readAsDataURL(f)};
+ fetch('/smash/'+encodeURIComponent(tok)+'/me?device='+encodeURIComponent(dev)).then(function(r){return r.json()}).then(function(d){
+  if(d&&d.number){say('sst','ok','✅ you already sent your picture (entry #'+d.number+').');$('sb').disabled=true}}).catch(function(){});
+ $('sb').onclick=function(){if(!img){say('sst','er','add a picture first');return}if(!$('ok').checked){say('sst','er','please tick the confirmation box');return}
+  var b=$('sb');b.disabled=true;say('sst','','sending…');
+  fetch('/smash/'+encodeURIComponent(tok)+'/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:img,caption:$('cap').value,consent:true,device:dev})})
+  .then(function(r){return r.json()}).then(function(d){
+   if(d.ok){say('sst','ok','✅ sent! it is entry #'+d.number+'. an admin will post it in the group.');clr();$('cap').value='';$('ok').checked=false}
+   else{say('sst','er',d.error||'failed');if(!d.number)b.disabled=false}})
+  .catch(function(){say('sst','er','network error, try again');b.disabled=false})};
+}
+
+/* ───────── TRUTH OR DARE ───────── */
+var TRUTHS=["What's the most embarrassing thing you've done in front of a crush?","What's a secret talent nobody in this group knows about?","What's the last lie you told?","Who in this group would you trust with your phone for an hour?","What's the most childish thing you still do?","What's the worst gift you've ever received?","Have you ever pretended to be sick to skip something? What was it?","What's your biggest irrational fear?","What's the most awkward text you've ever sent to the wrong person?","What's one thing you'd change about yourself?","Who was your first crush?","What's the longest you've gone without bathing?","What song do you secretly love but never admit?","What's the dumbest thing you've ever cried about?","If you could swap lives with someone here for a day, who and why?","What's the biggest risk you've ever taken?","What's something you've never told your parents?","What's your most used emoji and what does it say about you?","What's the pettiest reason you've stopped talking to someone?","What's the worst date or hangout you've ever had?","What's one app you'd be embarrassed to show your screen time for?","Who here do you think will be rich first?","What's the weirdest dream you remember?","What's your biggest pet peeve about chatting online?","What's the most spontaneous thing you've ever done?"];
+var DARES=["Send a voice note singing the chorus of any song.","Change your WhatsApp status to 'I love Mondays' for one hour.","Text the 5th person in your chat list 'we need to talk' and screenshot their reply.","Send your best impression of a news presenter as a voice note.","Post your most embarrassing selfie (the group picks) in the chat.","Speak only in questions for the next 10 minutes.","Send a voice note saying the alphabet backwards.","Compliment every person in the group, one by one.","Let the group choose your profile picture for the next hour.","Do 15 pushups and send a video or voice note counting.","Send the last photo in your gallery (if it's safe for the group).","Write a two-line poem about the person above you in the chat.","Talk in a funny accent for the next 5 messages.","Send a voice note laughing like a villain for 10 seconds.","Type your next 3 messages using only emojis.","Say something nice about the group admin.","Send a voice note of you saying 'I am a potato' in 3 different moods.","Rename yourself to something silly (the group picks) for 30 minutes.","Tell the group your most unpopular opinion.","Send a message to your mum saying 'I love you' and show the reply."];
+function truthdare(){
+ var tq2=deck(TRUTHS),dq=deck(DARES);
+ app.innerHTML=head('😈','Truth or Dare','tap one and face it')
+ +'<div class="card"><div style="text-align:center"><span class="tag" id="tag">READY?</span></div><div class="big" id="q">Pick Truth or Dare below 👇</div>'
+ +'<div class="row"><button class="opt" id="bt">🤔 Truth</button><button class="opt" id="bd">🔥 Dare</button></div>'
+ +'<div style="margin-top:10px"><button class="alt" id="br">🎲 Surprise me</button></div></div>'
+ +'<small class="f">Screenshot it and send to the group, or read it out loud.</small>';
+ function show(kind){$('tag').textContent=kind==='truth'?'TRUTH':'DARE';$('q').textContent=kind==='truth'?tq2():dq()}
+ $('bt').onclick=function(){show('truth')};$('bd').onclick=function(){show('dare')};$('br').onclick=function(){show(Math.random()<.5?'truth':'dare')};
+}
+
+/* ───────── WOULD YOU RATHER ───────── */
+var WYR=[["Be able to fly","Be invisible"],["Never use social media again","Never watch videos again"],["Always be 10 minutes late","Always be 20 minutes early"],["Have unlimited data but slow","Fast data but only 1GB a month"],["Lose all your photos","Lose all your contacts"],["Know when you will die","Know how you will die"],["Be famous but broke","Be rich but unknown"],["Only eat jollof forever","Never eat jollof again"],["Have no phone for a month","Have no friends for a week"],["Speak every language","Play every instrument"],["Always say what you think","Never speak again"],["Live without music","Live without movies"],["Have a rewind button for your life","Have a pause button for your life"],["Be the smartest person alive","Be the funniest person alive"],["Never sleep again but feel fine","Sleep 15 hours a day"],["Have free flights for life","Have free food for life"],["Fight 1 horse-sized duck","Fight 100 duck-sized horses"],["Read minds","See the future"],["Have 5 great friends","Have 500 okay friends"],["Be stuck in a lift with your ex","Be stuck in a lift with your boss"],["Redo your last year","Skip ahead one year"],["Never have to work again","Never have to sleep again"],["Be always cold","Be always hot"],["Text your crush 'hi' now","Never text them again"],["Win the lottery","Live twice as long"],["Have super strength","Have super speed"],["Wake up each day in a new place","Live in one place for life"],["Be able to talk to animals","Be able to speak to the dead"],["Have a personal chef","Have a personal driver"],["Delete your most-used app forever","Delete all your games forever"]];
+function wyr(){
+ var next=deck(WYR),cur;
+ app.innerHTML=head('🥂','Would You Rather','pick a side, no fence-sitting')
+ +'<div class="card"><div class="big" style="min-height:60px;font-size:17px;color:var(--mut)">Would you rather…</div>'
+ +'<button class="opt" id="a" style="width:100%"></button><div class="or">— OR —</div><button class="opt" id="b" style="width:100%"></button>'
+ +'<div class="st" id="msg"></div><div style="margin-top:6px"><button class="alt" id="n">Next ➜</button></div></div>'
+ +'<small class="f">Screenshot your pick and send it to the group. Argue about it.</small>';
+ function load(){cur=next();$('a').textContent=cur[0];$('b').textContent=cur[1];$('a').className=$('b').className='opt';$('msg').textContent='';$('msg').className='st'}
+ $('a').onclick=function(){$('a').className='opt pick';$('b').className='opt';say('msg','ok','you picked: '+cur[0])};
+ $('b').onclick=function(){$('b').className='opt pick';$('a').className='opt';say('msg','ok','you picked: '+cur[1])};
+ $('n').onclick=load;load();
+}
+
+var routes={smash:smash,anon:anon,truthdare:truthdare,wyr:wyr};
+(routes[slug]||hub)();
+</script></body></html>
