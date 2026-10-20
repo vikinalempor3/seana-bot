@@ -114,6 +114,13 @@ function _migrateOld(oldP, newP) {   // copy data from the old file name once, s
 }
 for (const _sfx of ['', '-wal', '-shm']) _migrateOld('./jinwoo.db' + _sfx, './seana.db' + _sfx);
 const db = new Database('./seana.db');
+// Auto-load proxy from environment variable on startup
+if (process.env.WA_PROXY) {
+  try {
+    db.prepare(`INSERT OR REPLACE INTO proxy_config (session_key, proxy_url, enabled, label, added_at) VALUES ('global', ?, 1, 'env', datetime('now'))`).run(process.env.WA_PROXY);
+    console.log('[proxy] Loaded from WA_PROXY env:', process.env.WA_PROXY);
+  } catch(_) {}
+}
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY, name TEXT,
@@ -10432,6 +10439,13 @@ db.exec(`CREATE TABLE IF NOT EXISTS proxy_config (
   label       TEXT DEFAULT '',
   added_at    INTEGER DEFAULT 0
 )`);
+
+if (process.env.WA_PROXY) {
+  try {
+    db.prepare(`INSERT OR REPLACE INTO proxy_config (session_key, proxy_url, enabled, label, added_at) VALUES ('global', ?, 1, 'env', datetime('now'))`).run(process.env.WA_PROXY);
+    console.log('[proxy] Loaded from WA_PROXY env:', process.env.WA_PROXY);
+  } catch(_) {}
+}
 function kvGet(k) { try { return db.prepare('SELECT value FROM bot_kv WHERE key=?').get(k)?.value || ''; } catch (_) { return ''; } }
 function kvSet(k, v) { try { db.prepare('INSERT INTO bot_kv (key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run(k, v); } catch (_) {} }
 // Turn any link (e.g. the bot's /menu page link) into its base address: https://host
