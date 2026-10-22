@@ -16681,7 +16681,12 @@ async function createSession(tgUserId, phone, tgChatId, tgMsgId, { forceNew = fa
       if (loggedOut) {
         // Non-owner genuinely logged out — clear creds and notify
         sessions.delete(tgId);
-        clearAuthDir(authDir);
+        // Clear auth from whichever storage is active
+        if (process.env.MONGODB_URI && _col) {
+          try { await _col.deleteMany({}); } catch(_) {}
+        } else {
+          clearAuthDir(authDir);
+        }
         const msg = session.everConnected
           ? '⚠️ WhatsApp session ended (logged out).\n\nUse /pair <number> to reconnect.'
           : '❌ Pairing rejected by WhatsApp.\n\nRun /pair <number> to try again.';
